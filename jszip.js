@@ -579,11 +579,12 @@ JSZip.prototype = (function () {
        * xhrtype options: textplain | arraybuffer | blob
        * @param   {string} name The name of the file to add
        * @param   {string} url The URL of the file to fetch
-       * @param   {Object} o     File options
+       * @param   {string} id Identifier used in the callback so the caller can identify the file that has been completed
        * @param   {function} callback     Callback function
+       * @param   {Object} o     File options
        * @return  {JSZip|Object|Array} this JSZip object.
        */
-      fileURL : function(name, url, o, callback) {
+      fileURL : function(name, url, id, callback, o) {
         if (!url)
             return this;
 
@@ -595,7 +596,7 @@ JSZip.prototype = (function () {
         
         var fetched = function(data) {
             that.file.call(that, name, data, o);
-            callback(name);
+            callback(id);
         }
             
         if(xhrtype == 'textplain') {
