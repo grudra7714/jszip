@@ -573,6 +573,73 @@ JSZip.prototype = (function () {
          }
          return this;
       },
+      /**
+       * Add a file to the zip fetching it from the given URL.
+       * xhrtype options: textplain | arraybuffer | blob
+       * @param   {string} name The name of the file to add
+       * @param   {string} url The URL of the file to fetch
+       * @param   {string} id Identifier used in the callback so the caller can identify the file that has been completed
+       * @param   {function} callback     Callback function
+       * @param   {Object} o     File options
+       * @return  {JSZip|Object|Array} this JSZip object.
+       */
+      fileURL : function (name, url, id, callback, o) {
+            if (!url)
+                  return this;
+
+            var that = this;
+            var xhrmethod = 'GET'
+            var xhrtype = 'arraybuffer';
+            if (o.xhrtype)
+                  xhrtype = o.xhrtype;
+
+            var fetched = function (data) {
+                  that.file.call(that, name, data, o);
+                  callback(id);
+            }
+
+            if (xhrtype == 'textplain') {
+                  var xhr = new XMLHttpRequest();
+                  xhr.open(xhrmethod, url, true);
+                  if (xhr.overrideMimeType)
+                        xhr.overrideMimeType('text/plain; charset=x-user-defined');
+                  xhr.onreadystatechange = function (e) {
+                        if (this.readyState == 4 && this.status == 200) {
+                              fetched(this.responseText);
+                        }
+                  };
+                  xhr.send();
+            }
+            else if (xhrtype == 'arraybuffer') {
+                  var xhr = new XMLHttpRequest();
+                  xhr.open(xhrmethod, url, true);
+                  xhr.responseType = 'arraybuffer';
+                  xhr.onreadystatechange = function (e) {
+                        if (this.readyState == 4 && this.status == 200) {
+                              fetched(this.response);
+                        }
+                  };
+                  xhr.send();
+            }
+            else if (xhrtype == 'blob') {
+                  var xhr = new XMLHttpRequest();
+                  xhr.open(xhrmethod, url, true);
+                  xhr.responseType = 'blob';
+                  xhr.onreadystatechange = function (e) {
+                        if (this.readyState == 4 && this.status == 200) {
+                              var reader = new FileReader();
+                              reader.onload = function (e) {
+                                    fetched(e.target.result);
+                              };
+                              reader.readAsArrayBuffer(this.response);
+                        }
+                  };
+                  xhr.send();
+            }
+
+            return this;
+      },
+
 
       /**
        * Add a directory to the zip file, or search.
